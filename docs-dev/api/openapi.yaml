@@ -1,0 +1,41 @@
+openapi: 3.1.0
+info:
+  title: Neptune v2 API
+  version: 2.0.0-alpha.1
+paths:
+  /v2/logs:ingest:
+    post:
+      summary: Ingest logs
+      responses:
+        '202':
+          description: Accepted
+  /v2/logs:
+    get:
+      summary: Query logs
+      responses:
+        '200':
+          description: OK
+  /v2/metrics:
+    get:
+      summary: Metrics
+      responses:
+        '200':
+          description: OK
+  /v2/sources:
+    get:
+      summary: Sources
+      responses:
+        '200':
+          description: OK
+  /v2/health:
+    get:
+      summary: Health
+      responses:
+        '200':
+          description: OK
+  /v2/gateway/discovery:
+    get:
+      summary: Gateway discovery
+      responses:
+        '200':
+          description: OK

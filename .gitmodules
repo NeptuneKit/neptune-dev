@@ -1,0 +1,24 @@
+[submodule "neptune-contracts"]
+	path = neptune-contracts
+	url = https://github.com/NeptuneKit/neptune-contracts.git
+[submodule "neptune-gateway-swift"]
+	path = neptune-gateway-swift
+	url = https://github.com/NeptuneKit/neptune-gateway-swift.git
+[submodule "neptune-inspector-h5"]
+	path = neptune-inspector-h5
+	url = https://github.com/NeptuneKit/neptune-inspector-h5.git
+[submodule "neptune-desktop-macos"]
+	path = neptune-desktop-macos
+	url = https://github.com/NeptuneKit/neptune-desktop-macos.git
+[submodule "neptune-sdk-ios"]
+	path = neptune-sdk-ios
+	url = https://github.com/NeptuneKit/neptune-sdk-ios.git
+[submodule "neptune-sdk-android"]
+	path = neptune-sdk-android
+	url = https://github.com/NeptuneKit/neptune-sdk-android.git
+[submodule "neptune-sdk-harmony"]
+	path = neptune-sdk-harmony
+	url = https://github.com/NeptuneKit/neptune-sdk-harmony.git
+[submodule "neptune-sdk-web"]
+	path = neptune-sdk-web
+	url = https://github.com/NeptuneKit/neptune-sdk-web.git

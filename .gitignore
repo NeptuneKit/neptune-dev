@@ -1,0 +1,8 @@
+.DS_Store
+.build/
+.swiftpm/
+node_modules/
+*.xcworkspace/xcuserdata/
+DerivedData/
+
+references/
