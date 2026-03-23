@@ -41,3 +41,21 @@
 - H: done (`neptune-contracts@0c53e53`)
 - I: done (`neptune-inspector-h5@ac6dd77`)
 - J: done (`neptune-desktop-macos@941dd8e`)
+
+## 第四轮并行（进行中）
+- K: neptune-gateway-swift（CLI 代理：`log stream/show` + `adb logcat` + `hdc hilog`）
+- L: neptune-sdk-ios（HTTP 导出服务实装）
+- M: neptune-sdk-android（HTTP 导出服务实装）
+- N: neptune-desktop-macos（网关进程拉起）
+
+## 第四轮结果
+- K: done (`neptune-gateway-swift@b036b41`)
+- L: done (`neptune-sdk-ios@3f81f62`)
+- M: done (`neptune-sdk-android@d6c603c`)
+- N: done (`neptune-desktop-macos@9c5d86e`)
+
+## 第四轮验证
+- gateway-swift：`swift test` 通过（9 tests）
+- sdk-ios：`swift test` 通过（4 tests）
+- sdk-android：`./gradlew test` 通过
+- desktop-macos：`swift build` 通过
