@@ -114,3 +114,24 @@
 - sdk-ios：`xcrun swift test` 通过（6 tests）
 - sdk-android：`./gradlew test` 通过
 - 两端导出路由语义保持不变：`/v2/export/health`、`/v2/export/metrics`、`/v2/export/logs`
+
+## 第八轮并行（进行中）
+- AA: neptune-sdk-web（Web SDK 实装）
+- AB: neptune-gateway-swift（100,000 条压测与并发唯一性门禁）
+- AC: neptune-desktop-macos（本地 inspector 静态资源优先加载）
+- AD: neptune-contracts（compatibility matrix 收口）
+- AE: 父仓（`docs-linhay/scripts` 门禁编排脚本）
+
+## 第八轮结果
+- AA: done (`neptune-sdk-web@eebad71`)
+- AB: done (`neptune-gateway-swift@362f37c`)
+- AC: done (`neptune-desktop-macos@e0ea395`)
+- AD: done (`neptune-contracts@7929a99`)
+- AE: done（新增 `docs-linhay/scripts/run-all-checks.sh`）
+
+## 第八轮验证
+- neptune-sdk-web：`npm test`、`npm run build` 通过
+- neptune-gateway-swift：`swift test` 通过；`scripts/perf_gate.sh`（100k）通过
+- neptune-desktop-macos：`swift build`、`swift test` 通过
+- neptune-contracts：OpenAPI YAML 可解析；compatibility matrix 已无 pending
+- 父仓总门禁：`docs-linhay/scripts/run-all-checks.sh` 全部通过
