@@ -101,3 +101,16 @@
 - inspector-h5：`npm test`、`npm run build` 通过（13 tests）
 - sdk-harmony：验证脚本通过（`bash -n` + `node`）
 - desktop-macos：`swift build` 通过
+
+## 第七轮并行（进行中）
+- Y: neptune-sdk-ios（HTTP 服务从 FlyingFox 迁移到 Vapor/Hummingbird）
+- Z: neptune-sdk-android（HTTP 服务从 NanoHTTPD 迁移到 Ktor）
+
+## 第七轮结果
+- Y: done (`neptune-sdk-ios@5375a57`)
+- Z: done (`neptune-sdk-android@3e90f5f`)
+
+## 第七轮验证
+- sdk-ios：`xcrun swift test` 通过（6 tests）
+- sdk-android：`./gradlew test` 通过
+- 两端导出路由语义保持不变：`/v2/export/health`、`/v2/export/metrics`、`/v2/export/logs`
