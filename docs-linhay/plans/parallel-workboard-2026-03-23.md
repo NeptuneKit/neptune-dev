@@ -29,3 +29,15 @@
 ## 第二轮验证
 - sdk-harmony：静态校验通过（依赖、路由、导出函数）
 - gateway-swift：`swift test` 通过（2 tests）
+
+## 第三轮并行（进行中）
+- G: neptune-gateway-swift（可用查询内核 + 长轮询）
+- H: neptune-contracts（契约与 fixtures 同步）
+- I: neptune-inspector-h5（v2 长轮询前端骨架）
+- J: neptune-desktop-macos（WKWebView 壳层）
+
+## 第三轮结果
+- G: done (`neptune-gateway-swift@8315b6d`)
+- H: done (`neptune-contracts@0c53e53`)
+- I: done (`neptune-inspector-h5@ac6dd77`)
+- J: done (`neptune-desktop-macos@941dd8e`)
