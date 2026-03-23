@@ -59,3 +59,45 @@
 - sdk-ios：`swift test` 通过（4 tests）
 - sdk-android：`./gradlew test` 通过
 - desktop-macos：`swift build` 通过
+
+## 第五轮并行（进行中）
+- O: neptune-gateway-swift（SQLite 持久化 + retention）
+- P: neptune-contracts（契约与 retention fixture 对齐）
+- Q: neptune-inspector-h5（sources/metrics 面板）
+- R: neptune-sdk-harmony（`/v2/export/sources` + 来源去重）
+
+## 第五轮结果
+- O: done (`neptune-gateway-swift@869458d`)
+- P: done (`neptune-contracts@1fe7a5f`)
+- Q: done (`neptune-inspector-h5@bc50040`)
+- R: done (`neptune-sdk-harmony@7b60482`)
+
+## 第五轮验证
+- gateway-swift：`swift test` 通过（14 tests）
+- inspector-h5：`npm test`、`npm run build` 通过
+- sdk-harmony：sources 去重脚本验证通过（`bash -n` + `node`）
+- contracts：OpenAPI / fixtures 语法校验通过
+
+## 第六轮并行（成熟库优先审计）
+- S: neptune-gateway-swift（SQLite C API -> GRDB）
+- T: neptune-sdk-ios（成熟库审计）
+- U: neptune-sdk-android（HTTP JSON 编码替换为 Jackson）
+- V: neptune-sdk-harmony（成熟库审计）
+- W: neptune-inspector-h5（协议解析引入 `zod` 运行时校验）
+- X: neptune-desktop-macos（成熟库审计）
+
+## 第六轮结果
+- S: done (`neptune-gateway-swift@0abfa0b`)
+- T: done (`neptune-sdk-ios@8ead91e`)
+- U: done (`neptune-sdk-android@f7d524c`)
+- V: done (`neptune-sdk-harmony@ae7c7c3`)
+- W: done (`neptune-inspector-h5@d00f22e`)
+- X: done (`neptune-desktop-macos@b77ea36`)
+
+## 第六轮验证
+- gateway-swift：`swift test` 通过（16 tests）
+- sdk-ios：`xcrun swift test` 通过（4 tests）
+- sdk-android：`./gradlew test` 通过
+- inspector-h5：`npm test`、`npm run build` 通过（13 tests）
+- sdk-harmony：验证脚本通过（`bash -n` + `node`）
+- desktop-macos：`swift build` 通过
