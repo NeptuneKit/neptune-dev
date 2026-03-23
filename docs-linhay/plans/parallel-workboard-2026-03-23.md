@@ -135,3 +135,24 @@
 - neptune-desktop-macos：`swift build`、`swift test` 通过
 - neptune-contracts：OpenAPI YAML 可解析；compatibility matrix 已无 pending
 - 父仓总门禁：`docs-linhay/scripts/run-all-checks.sh` 全部通过
+
+## 第九轮并行（进行中）
+- AF: neptune-sdk-harmony（`/v2/export/logs` 增加 `platform/appId/sessionId` 过滤）
+- AG: neptune-gateway-swift（`format=text` + 事件驱动长轮询）
+- AH: neptune-sdk-web（gateway discovery + DSN/baseURL 回退）
+- AI: neptune-desktop-macos（bundle inspector 资源搜索路径）
+- AJ: 父仓（门禁脚本纳入 web）
+
+## 第九轮结果
+- AF: done (`neptune-sdk-harmony@ae08584`)
+- AG: done (`neptune-gateway-swift@ed1f0bc`)
+- AH: done (`neptune-sdk-web@59b55dd`)
+- AI: done (`neptune-desktop-macos@a47ed23`)
+- AJ: done（`docs-linhay/scripts/run-all-checks.sh` 已覆盖 web）
+
+## 第九轮验证
+- neptune-gateway-swift：`swift test` 通过（21 passed, 1 skipped）
+- neptune-sdk-web：`npm test`、`npm run build` 通过（8 tests）
+- neptune-sdk-harmony：过滤脚本与 sources 脚本通过
+- neptune-desktop-macos：`swift build`、`swift test` 通过
+- 父仓总门禁：更新后的 `docs-linhay/scripts/run-all-checks.sh` 全部通过
