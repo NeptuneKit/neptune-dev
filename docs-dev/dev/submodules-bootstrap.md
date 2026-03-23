@@ -1,7 +1,7 @@
-# Submodule 接入清单
+# Submodule 结构与接入清单
 
 ## 目标
-在父仓 `neptune-dev` 下接入子仓，并采用 commit pin 管理。
+在父仓 `neptune-dev` 下维护子仓，并采用 commit pin 管理。
 
 ## 仓库命名
 - `neptune-contracts`
@@ -13,7 +13,14 @@
 - `neptune-sdk-harmony`
 - `neptune-sdk-web`
 
-## 建议接入命令
+## 首次接入命令（新环境）
+```bash
+git clone https://github.com/NeptuneKit/neptune-dev.git
+cd neptune-dev
+git submodule update --init --recursive
+```
+
+## 新增子仓命令（扩仓时）
 ```bash
 git submodule add git@github.com:NeptuneKit/neptune-contracts.git neptune-contracts
 git submodule add git@github.com:NeptuneKit/neptune-gateway-swift.git neptune-gateway-swift
