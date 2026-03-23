@@ -4,6 +4,8 @@
 .
 ├── MEMORY.md
 ├── AGENTS.md
+├── docs-linhay/
+│   └── plans/
 ├── references/
 ├── screenshots/
 ├── docs-dev/

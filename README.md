@@ -9,6 +9,8 @@
 ├── AGENTS.md
 ├── MEMORY.md
 ├── README.md
+├── docs-linhay/
+│   └── plans/
 ├── docs-dev/
 │   ├── api/
 │   ├── dev/
