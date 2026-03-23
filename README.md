@@ -10,12 +10,11 @@
 ├── MEMORY.md
 ├── README.md
 ├── docs-linhay/
-│   └── plans/
-├── docs-dev/
 │   ├── api/
 │   ├── dev/
 │   ├── features/
-│   └── ops/
+│   ├── ops/
+│   └── plans/
 ├── memory/
 ├── references/
 ├── screenshots/

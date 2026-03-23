@@ -1,7 +1,7 @@
 # neptune-dev 目录结构（当前）
 
 ## 父仓
-- 文档：`docs-dev/`
+- 文档：`docs-linhay/`
 - 记忆：`memory/`, `MEMORY.md`
 - 归档：`references/`
 - 截图：`screenshots/`

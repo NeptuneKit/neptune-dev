@@ -23,7 +23,7 @@
 
 - `neptune-contracts` 产出 `v2.0.0-alpha.1`
 - 完成 v2 OpenAPI、日志 schema、fixture、兼容矩阵
-- 父仓文档门禁到位：`docs-dev/api` / `docs-dev/features` / `docs-linhay/plans`
+- 父仓文档门禁到位：`docs-linhay/api` / `docs-linhay/features` / `docs-linhay/plans`
 
 完成定义：
 - contracts 可被 gateway/sdk/inspector 同时引用
