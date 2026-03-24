@@ -308,3 +308,19 @@
 - iOS：`xcrun swift test`、`./scripts/smoke-demo.sh` 通过；`ci.yml` 已新增独立 Smoke Demo job
 - Harmony：`node scripts/demo-smoke.mjs` 与现有 verify 链路通过；`ci.yml` 默认执行 demo smoke
 - 父仓：`NEPTUNE_CHECK_NATIVE_SMOKE=1 NEPTUNE_CHECK_WEB_SMOKE=1 bash docs-linhay/scripts/run-all-checks.sh` 全量通过
+
+## 第二十二轮并行（进行中）
+- BP: neptune-sdk-ios（真实 iOS Simulator Demo App）
+- BQ: neptune-sdk-android（真实 Android Simulator Demo App）
+- BR: neptune-sdk-harmony（真实 Harmony entry Demo App）
+
+## 第二十二轮结果
+- BP: done (`neptune-sdk-ios@7c1df8d`)
+- BQ: done (`neptune-sdk-android@860b945`)
+- BR: done (`neptune-sdk-harmony@cae2760`)
+
+## 第二十二轮验证
+- iOS：`bash scripts/simulator-demo.sh` 通过（`BUILD SUCCEEDED` + `simctl launch` 成功）
+- Android：Demo 工程 `examples/simulator-app` 已落地并可独立解析 Gradle 任务；主仓 `./gradlew test`、`./gradlew smokeDemo` 不受影响
+- Harmony：`entry` 模块可构建，`./hvigorw --mode module -p module=entry assembleHap --no-daemon` 通过
+- 环境阻塞记录：当前机器缺 Android 标准 SDK/adb/emulator，且 `hdc list targets` 为空，故 Android/Harmony 未完成“启动模拟器并安装运行”实机步骤
