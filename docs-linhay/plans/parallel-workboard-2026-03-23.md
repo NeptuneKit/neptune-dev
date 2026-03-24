@@ -233,3 +233,15 @@
 
 ## 第十四轮备注
 - 三条并行线均已完成并推送；父仓已完成 submodule bump 与总门禁回归
+
+## 第十五轮并行（进行中）
+- BA: neptune-gateway-swift（CLI release workflow）
+- BB: neptune-desktop-macos（desktop package workflow）
+
+## 第十五轮结果
+- BA: done (`neptune-gateway-swift@ae60d3b`)
+- BB: done (`neptune-desktop-macos@1c4536d`)
+
+## 第十五轮验证
+- gateway：`release-cli.yml` YAML 可解析；`build-cli-release.sh` 语法校验通过
+- desktop：`package-desktop.yml` YAML 可解析；`package-macos-app.sh --dry-run` 可执行
