@@ -290,3 +290,21 @@
 - Android：`cd neptune-sdk-android && ./gradlew smokeDemo` 通过
 - Harmony：`cd neptune-sdk-harmony && node ./scripts/demo-smoke.mjs` 通过（`demo-smoke: ok`）
 - 父仓：`bash docs-linhay/scripts/smoke-demo-native.sh` 通过（`all native smoke demos passed`）
+
+## 第二十一轮并行（进行中）
+- BL: neptune-sdk-ios（CI 纳入 smoke-demo）
+- BM: neptune-sdk-android（Kotlin 插件告警清零 + CI 纳入 smokeDemo）
+- BN: neptune-sdk-harmony（CI 默认纳入 demo-smoke）
+- BO: 父仓（run-all-checks 增加 native/web smoke 可开关门禁）
+
+## 第二十一轮结果
+- BL: done (`neptune-sdk-ios@1bd1053`)
+- BM: done (`neptune-sdk-android@ddfbf59`)
+- BN: done (`neptune-sdk-harmony@cfd1da5`)
+- BO: done（父仓 `run-all-checks.sh` / `integration.yml` / `scripts/README.md` 已同步）
+
+## 第二十一轮验证
+- Android：`./gradlew test --warning-mode all`、`./gradlew smokeDemo --warning-mode all` 通过，Kotlin 插件多重加载 warning 消失
+- iOS：`xcrun swift test`、`./scripts/smoke-demo.sh` 通过；`ci.yml` 已新增独立 Smoke Demo job
+- Harmony：`node scripts/demo-smoke.mjs` 与现有 verify 链路通过；`ci.yml` 默认执行 demo smoke
+- 父仓：`NEPTUNE_CHECK_NATIVE_SMOKE=1 NEPTUNE_CHECK_WEB_SMOKE=1 bash docs-linhay/scripts/run-all-checks.sh` 全量通过

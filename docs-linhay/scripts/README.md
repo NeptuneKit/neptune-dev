@@ -3,6 +3,8 @@
 - `run-all-checks.sh`：父仓一键触发各子仓核心测试门禁。
   - 当前覆盖：gateway / ios / android / inspector / web / harmony（含持久化验证）/ desktop
   - 可选：`NEPTUNE_CHECK_HARMONY_BUILD=1` 时追加 `ohpm install --all` 与 `hvigorw assembleHar` 构建校验
+  - 可选：`NEPTUNE_CHECK_NATIVE_SMOKE=1` 时追加执行 `smoke-demo-native.sh`
+  - 可选：`NEPTUNE_CHECK_WEB_SMOKE=1` 时追加执行 `smoke-demo-web.sh`
 - `smoke-demo-web.sh`：拉起本地 gateway，并执行 `neptune-sdk-web/examples/smoke-demo/run.cjs` 做端到端冒烟。
   - 默认 gateway：`http://127.0.0.1:18765`
   - 可选：`NEPTUNE_DEMO_GATEWAY_PORT=<port>` 指定端口

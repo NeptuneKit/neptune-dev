@@ -45,4 +45,12 @@ if [[ "${NEPTUNE_CHECK_HARMONY_BUILD:-0}" == "1" ]]; then
   run neptune-sdk-harmony "ohpm install --all && ./hvigorw --mode module -p module=library assembleHar --no-daemon"
 fi
 
+if [[ "${NEPTUNE_CHECK_NATIVE_SMOKE:-0}" == "1" ]]; then
+  (cd "${ROOT}" && bash docs-linhay/scripts/smoke-demo-native.sh)
+fi
+
+if [[ "${NEPTUNE_CHECK_WEB_SMOKE:-0}" == "1" ]]; then
+  (cd "${ROOT}" && bash docs-linhay/scripts/smoke-demo-web.sh)
+fi
+
 echo "\nAll core checks passed."

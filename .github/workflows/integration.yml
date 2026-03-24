@@ -12,6 +12,16 @@ on:
         required: false
         default: false
         type: boolean
+      check_native_smoke:
+        description: "是否执行 iOS/Android/Harmony demo 冒烟"
+        required: false
+        default: false
+        type: boolean
+      check_web_smoke:
+        description: "是否执行 Web demo 冒烟"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   checks:
@@ -20,6 +30,8 @@ jobs:
 
     env:
       NEPTUNE_CHECK_HARMONY_BUILD: "0"
+      NEPTUNE_CHECK_NATIVE_SMOKE: "0"
+      NEPTUNE_CHECK_WEB_SMOKE: "0"
 
     steps:
       - name: Checkout
@@ -31,6 +43,14 @@ jobs:
       - name: Enable Harmony build gate
         if: github.event_name == 'workflow_dispatch' && inputs.check_harmony_build
         run: echo "NEPTUNE_CHECK_HARMONY_BUILD=1" >> "$GITHUB_ENV"
+
+      - name: Enable native smoke gate
+        if: github.event_name == 'workflow_dispatch' && inputs.check_native_smoke
+        run: echo "NEPTUNE_CHECK_NATIVE_SMOKE=1" >> "$GITHUB_ENV"
+
+      - name: Enable web smoke gate
+        if: github.event_name == 'workflow_dispatch' && inputs.check_web_smoke
+        run: echo "NEPTUNE_CHECK_WEB_SMOKE=1" >> "$GITHUB_ENV"
 
       - name: Run integration checks
         run: bash docs-linhay/scripts/run-all-checks.sh
