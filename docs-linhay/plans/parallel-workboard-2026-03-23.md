@@ -181,3 +181,24 @@
 ## 第十一轮验证
 - `ohpm install --all` 通过（官方源）
 - `./hvigorw --mode module -p module=library assembleHar --no-daemon` 通过
+
+## 第十二轮并行（进行中）
+- AO: neptune-gateway-swift（GitHub Actions CI）
+- AP: neptune-inspector-h5（GitHub Actions CI）
+- AQ: neptune-sdk-web（GitHub Actions CI + pack dry-run）
+- AR: neptune-sdk-ios（GitHub Actions CI）
+- AS: neptune-sdk-android（GitHub Actions CI）
+
+## 第十二轮结果
+- AO: done (`neptune-gateway-swift@cbc1379`)
+- AP: done (`neptune-inspector-h5@ec524b4`)
+- AQ: done (`neptune-sdk-web@3052c46`)
+- AR: done (`neptune-sdk-ios@3f4af13`)
+- AS: done (`neptune-sdk-android@a64f662`)
+
+## 第十二轮验证
+- gateway：`swift test`、perf gate filter 测试通过
+- inspector：`npm ci`、`npm test`、`npm run build` 通过
+- sdk-web：`npm ci`、`npm test`、`npm run build`、`npm pack --dry-run` 通过
+- sdk-ios：`xcrun swift test` 通过
+- sdk-android：`./gradlew test` 通过
