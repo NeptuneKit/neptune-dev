@@ -348,3 +348,22 @@
 - Android：Demo 工程 `examples/simulator-app` 已落地并可独立解析 Gradle 任务；主仓 `./gradlew test`、`./gradlew smokeDemo` 不受影响
 - Harmony：`entry` 模块可构建，`./hvigorw --mode module -p module=entry assembleHap --no-daemon` 通过
 - 环境阻塞记录：当前机器缺 Android 标准 SDK/adb/emulator，且 `hdc list targets` 为空，故 Android/Harmony 未完成“启动模拟器并安装运行”实机步骤
+
+## 第二十三轮并行（进行中）
+- BS: neptune-sdk-harmony（模拟器启动阻塞清零）
+- BT: neptune-sdk-ios（runtime 恢复与 simulator 冒烟）
+- BU: 父仓（实机证据与子模块指针收口）
+
+## 第二十三轮结果
+- BS: done（`neptune-sdk-harmony@f7a1679`，`EntryAbility` 增加 `exported=true`，`aa start` 已成功）
+- BT: 进行中（当前 `simctl list runtimes` 为空，待 runtime 下载恢复）
+- BU: 进行中（Harmony v02/v03 截图与 layout 证据待入库，父仓待 bump harmony 子模块）
+
+## 第二十三轮验证
+- Harmony：
+  - `./scripts/build-demo-entry.sh` 通过
+  - `hdc install -r entry-default-unsigned.hap` 成功
+  - `hdc shell aa start -b io.github.neptune.sdk.harmony -m entry -a EntryAbility` 返回 `start ability successfully`
+  - `uitest dumpLayout` 可见 Demo 页面关键文案（`Neptune SDK Harmony Demo`、`写入 Demo 日志批次`）
+- iOS：
+  - `xcrun simctl list runtimes` 当前输出为空（环境阻塞仍在）
