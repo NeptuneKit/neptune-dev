@@ -1,11 +1,17 @@
 # 脚本目录
 
 - `run-all-checks.sh`：父仓一键触发各子仓核心测试门禁。
+  - 默认先执行 `check-log-contract-parity.sh`，保证父仓 `docs-linhay/api/openapi.yaml` 与 `neptune-contracts/openapi/openapi.yaml` 保持一致
   - 当前覆盖：gateway / ios / android / inspector / web / harmony（含持久化验证）/ desktop
   - 可选：`NEPTUNE_CHECK_HARMONY_BUILD=1` 时追加 `ohpm install --all` 与 `hvigorw assembleHar` 构建校验
   - 可选：`NEPTUNE_CHECK_ANDROID_HARMONY_SMOKE=1` 时追加执行 `smoke-demo-android-harmony.sh`
   - 可选：`NEPTUNE_CHECK_NATIVE_SMOKE=1` 时追加执行 `smoke-demo-native.sh`
   - 可选：`NEPTUNE_CHECK_WEB_SMOKE=1` 时追加执行 `smoke-demo-web.sh`
+- `run-log-checks.sh`：日志批次专用门禁，仅覆盖日志域能力（contracts/gateway/sdk-web+ios+android+harmony/inspector）。
+- `check-log-contract-parity.sh`：校验日志接口范围与契约同步：
+  - 必须包含：`/v2/logs:ingest`、`/v2/logs`、`/v2/metrics`、`/v2/sources`、`/v2/health`、`/v2/gateway/discovery`
+  - 禁止包含：`/v2/ws`
+  - 严格比对：`docs-linhay/api/openapi.yaml` 与 `neptune-contracts/openapi/openapi.yaml` 内容一致
 - `smoke-demo-web.sh`：拉起本地 gateway，并执行 `neptune-sdk-web/examples/smoke-demo/run.cjs` 做端到端冒烟。
   - 默认 gateway：`http://127.0.0.1:18765`
   - 可选：`NEPTUNE_DEMO_GATEWAY_PORT=<port>` 指定端口

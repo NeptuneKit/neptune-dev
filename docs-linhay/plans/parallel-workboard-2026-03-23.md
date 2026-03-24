@@ -383,3 +383,23 @@
 - Android 模拟器现状：
   - 协议 smoke（`./gradlew smokeDemo`）稳定通过
   - 实机安装链路受本机 adb/emulator 在线状态抖动影响，已下沉为可选校验项（`NEPTUNE_CHECK_ANDROID_SIM=1`）
+
+## 第二十五轮并行（进行中）
+- BW: 父仓（日志契约同步与日志专用门禁）
+
+## 第二十五轮结果
+- BW: done
+  - `docs-linhay/api/openapi.yaml` 已与 `neptune-contracts/openapi/openapi.yaml` 完整同步
+  - 新增 `docs-linhay/scripts/check-log-contract-parity.sh`（校验日志路径集合 + 禁用 `/v2/ws` + 文件一致性）
+  - 新增 `docs-linhay/scripts/run-log-checks.sh`（日志批次专用门禁）
+  - `docs-linhay/scripts/run-all-checks.sh` 默认接入契约一致性校验
+
+## 第二十五轮验证
+- `bash docs-linhay/scripts/check-log-contract-parity.sh` 通过
+- `bash docs-linhay/scripts/run-log-checks.sh` 全量通过：
+  - gateway: `swift test`（23 passed, 1 skipped）
+  - sdk-ios: `xcrun swift test`（9 passed）
+  - sdk-android: `./gradlew test && ./gradlew smokeDemo` 通过
+  - sdk-harmony: 过滤/持久化/demo-smoke 脚本通过
+  - sdk-web: `npm test && npm run build` 通过
+  - inspector-h5: `npm test && npm run build` 通过

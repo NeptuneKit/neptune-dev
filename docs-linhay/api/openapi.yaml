@@ -1,41 +1,459 @@
 openapi: 3.1.0
 info:
-  title: Neptune v2 API
+  title: Neptune v2 Contracts
   version: 2.0.0-alpha.1
+  description: |
+    NeptuneKit v2 统一日志系统契约。
+    该文件定义中心网关与客户端导出协议的最小可用骨架。
+servers:
+  - url: http://127.0.0.1:18765
 paths:
   /v2/logs:ingest:
     post:
-      summary: Ingest logs
+      summary: Ingest structured logs
+      description: |
+        接受三种等价的 ingest 编码：
+        - 单个 JSON 对象
+        - `IngestLogRecord` 数组
+        - NDJSON（一行一个 `IngestLogRecord`）
+
+        三者的记录语义一致，网关会统一归一化到同一 ingest 管线。
+      operationId: ingestLogs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/IngestLogRecord'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/IngestLogRecord'
+            examples:
+              single:
+                summary: Single log record
+                value:
+                  timestamp: '2026-03-23T14:00:00.000Z'
+                  level: debug
+                  message: queue flushed
+                  platform: android
+                  appId: com.neptune.example
+                  sessionId: session-002
+                  deviceId: device-002
+                  category: queue
+                  attributes:
+                    count: '50'
+                  source:
+                    sdkName: neptune-sdk-android
+                    sdkVersion: 0.1.0
+                    file: Logger.kt
+                    function: flush()
+                    line: 88
+              batch:
+                summary: Batch of log records
+                value:
+                  - timestamp: '2026-03-23T14:00:00.000Z'
+                    level: debug
+                    message: queue flushed
+                    platform: android
+                    appId: com.neptune.example
+                    sessionId: session-002
+                    deviceId: device-002
+                    category: queue
+                    attributes:
+                      count: '50'
+                    source:
+                      sdkName: neptune-sdk-android
+                      sdkVersion: 0.1.0
+                      file: Logger.kt
+                      function: flush()
+                      line: 88
+                  - timestamp: '2026-03-23T14:00:01.000Z'
+                    level: warning
+                    message: gateway unavailable, retrying
+                    platform: android
+                    appId: com.neptune.example
+                    sessionId: session-002
+                    deviceId: device-002
+                    category: transport
+                    attributes:
+                      retry: '1'
+                    source:
+                      sdkName: neptune-sdk-android
+                      sdkVersion: 0.1.0
+                      file: Transport.kt
+                      function: sendBatch()
+                      line: 121
+          application/x-ndjson:
+            schema:
+              type: string
+              description: One JSON object per line. Each line must match `IngestLogRecord`.
+            example: |-
+              {"timestamp":"2026-03-23T14:00:00.000Z","level":"debug","message":"queue flushed","platform":"android","appId":"com.neptune.example","sessionId":"session-002","deviceId":"device-002","category":"queue","attributes":{"count":"50"},"source":{"sdkName":"neptune-sdk-android","sdkVersion":"0.1.0","file":"Logger.kt","function":"flush()","line":88}}
+              {"timestamp":"2026-03-23T14:00:01.000Z","level":"warning","message":"gateway unavailable, retrying","platform":"android","appId":"com.neptune.example","sessionId":"session-002","deviceId":"device-002","category":"transport","attributes":{"retry":"1"},"source":{"sdkName":"neptune-sdk-android","sdkVersion":"0.1.0","file":"Transport.kt","function":"sendBatch()","line":121}}
       responses:
         '202':
           description: Accepted
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /v2/logs:
     get:
       summary: Query logs
+      operationId: queryLogs
+      description: |
+        `format=json` 返回 `LogRecordPage` 包装对象；`format=ndjson` 返回 `application/x-ndjson`，
+        每行一个 `LogRecord`，记录顺序与 JSON 响应中的 `records` 保持一致。
+
+        当前长轮询策略为 `afterId + waitMs`。
+        当 `afterId` 指向的游标之后暂时没有新记录时，网关最多等待 `waitMs` 毫秒；
+        若超时仍无新记录，则返回空页，并保持 `nextCursor` 为请求中的 `afterId`。
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/beforeId'
+        - $ref: '#/components/parameters/afterId'
+        - $ref: '#/components/parameters/platform'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/sessionId'
+        - $ref: '#/components/parameters/level'
+        - $ref: '#/components/parameters/contains'
+        - $ref: '#/components/parameters/since'
+        - $ref: '#/components/parameters/until'
+        - $ref: '#/components/parameters/format'
+        - $ref: '#/components/parameters/waitMs'
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRecordPage'
+            application/x-ndjson:
+              schema:
+                type: string
+                description: One JSON object per line.
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /v2/metrics:
     get:
-      summary: Metrics
+      summary: Gateway and source metrics
+      description: Gateway 当前采集与保留状态的快照。
+      operationId: getMetrics
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsSnapshot'
   /v2/sources:
     get:
-      summary: Sources
+      summary: Registered sources
+      description: 当前已注册且最近可见的 source 列表。
+      operationId: listSources
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Source'
   /v2/health:
     get:
-      summary: Health
+      summary: Health check
+      operationId: getHealth
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthSnapshot'
   /v2/gateway/discovery:
     get:
-      summary: Gateway discovery
+      summary: Discover gateway endpoint
+      description: 客户端用于发现网关主机与端口的最小响应。
+      operationId: discoverGateway
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayDiscovery'
+components:
+  parameters:
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+        default: 200
+    beforeId:
+      name: beforeId
+      in: query
+      schema:
+        type: integer
+        format: int64
+    afterId:
+      name: afterId
+      in: query
+      schema:
+        type: integer
+        format: int64
+    platform:
+      name: platform
+      in: query
+      schema:
+        type: string
+        enum: [ios, android, harmony, web]
+    appId:
+      name: appId
+      in: query
+      schema:
+        type: string
+    sessionId:
+      name: sessionId
+      in: query
+      schema:
+        type: string
+    level:
+      name: level
+      in: query
+      schema:
+        type: string
+        enum: [trace, debug, info, notice, warning, error, critical]
+    contains:
+      name: contains
+      in: query
+      schema:
+        type: string
+    since:
+      name: since
+      in: query
+      schema:
+        type: string
+        format: date-time
+    until:
+      name: until
+      in: query
+      schema:
+        type: string
+        format: date-time
+    format:
+      name: format
+      in: query
+      description: |
+        `/v2/logs` 的响应格式。
+        `json` 返回分页包装对象 `LogRecordPage`；
+        `ndjson` 返回按行分隔的 `LogRecord` 流。
+      schema:
+        type: string
+        enum: [json, ndjson]
+        default: json
+    waitMs:
+      name: waitMs
+      in: query
+      description: |
+        长轮询等待窗口，单位毫秒。
+        仅在 `afterId` 存在时生效；若没有更新记录，网关会最多等待该时长后返回空页。
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 20000
+        default: 0
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    LogRecord:
+      type: object
+      required: [id, timestamp, level, message, platform, appId, sessionId, deviceId, category]
+      properties:
+        id:
+          type: integer
+          format: int64
+        timestamp:
+          type: string
+          format: date-time
+        level:
+          type: string
+          enum: [trace, debug, info, notice, warning, error, critical]
+        message:
+          type: string
+        platform:
+          type: string
+          enum: [ios, android, harmony, web]
+        appId:
+          type: string
+        sessionId:
+          type: string
+        deviceId:
+          type: string
+        category:
+          type: string
+        attributes:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+        source:
+          $ref: '#/components/schemas/SourceOrigin'
+          nullable: true
+    IngestLogRecord:
+      type: object
+      required: [timestamp, level, message, platform, appId, sessionId, deviceId, category]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        level:
+          type: string
+          enum: [trace, debug, info, notice, warning, error, critical]
+        message:
+          type: string
+        platform:
+          type: string
+          enum: [ios, android, harmony, web]
+        appId:
+          type: string
+        sessionId:
+          type: string
+        deviceId:
+          type: string
+        category:
+          type: string
+        attributes:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+        source:
+          $ref: '#/components/schemas/SourceOrigin'
+          nullable: true
+    SourceOrigin:
+      type: object
+      description: SDK source metadata attached to an ingested log record.
+      properties:
+        sdkName:
+          type: string
+        sdkVersion:
+          type: string
+        file:
+          type: string
+        function:
+          type: string
+        line:
+          type: integer
+          format: int32
+    LogRecordPage:
+      type: object
+      description: Paginated log query response.
+      required: [records, hasMore]
+      properties:
+        records:
+          type: array
+          description: Records returned for the current query window.
+          items:
+            $ref: '#/components/schemas/LogRecord'
+        nextCursor:
+          type: integer
+          format: int64
+          nullable: true
+          description: Cursor for the next query window. Empty pages keep the incoming cursor value.
+        hasMore:
+          type: boolean
+          description: Whether more records are immediately available after `nextCursor`.
+    Source:
+      type: object
+      description: A source identity currently known to the gateway.
+      required: [platform, appId, sessionId, deviceId, lastSeenAt]
+      properties:
+        platform:
+          type: string
+          enum: [ios, android, harmony, web]
+          description: Client platform that produced the logs.
+        appId:
+          type: string
+          description: Application identifier reported by the SDK.
+        sessionId:
+          type: string
+          description: Session identifier within the app installation.
+        deviceId:
+          type: string
+          description: Device or emulator identifier.
+        lastSeenAt:
+          type: string
+          format: date-time
+          description: Most recent log or heartbeat timestamp seen for this source.
+        sdkName:
+          type: string
+          nullable: true
+          description: Reported SDK name, if available.
+        sdkVersion:
+          type: string
+          nullable: true
+          description: Reported SDK version, if available.
+        status:
+          type: string
+          enum: [online, offline, stale]
+          nullable: true
+          description: Gateway-derived source status.
+    MetricsSnapshot:
+      type: object
+      description: Aggregate gateway metrics at the moment of the request.
+      required: [ingestAcceptedTotal, sourceCount, totalRecords, droppedOverflow]
+      properties:
+        ingestAcceptedTotal:
+          type: integer
+          description: Total number of ingest records accepted by the gateway.
+        sourceCount:
+          type: integer
+          description: Number of currently registered sources.
+        totalRecords:
+          type: integer
+          description: Number of log records currently retained by the gateway.
+        droppedOverflow:
+          type: integer
+          description: Number of records dropped because retention or capacity limits were exceeded.
+    HealthSnapshot:
+      type: object
+      required: [ok, version]
+      properties:
+        ok:
+          type: boolean
+        version:
+          type: string
+        message:
+          type: string
+          nullable: true
+    GatewayDiscovery:
+      type: object
+      description: Gateway endpoint discovery payload.
+      required: [host, port, version]
+      properties:
+        host:
+          type: string
+          description: Gateway host name or IP address.
+        port:
+          type: integer
+          description: Gateway listener port.
+        version:
+          type: string
+          description: Gateway contract or deployment version exposed to clients.
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        detail:
+          type: string
+          nullable: true

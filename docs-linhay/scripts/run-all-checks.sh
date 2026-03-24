@@ -33,6 +33,8 @@ yaml_syntax_check neptune-desktop-macos/.github/workflows/package-desktop.yml
 yaml_syntax_check neptune-desktop-macos/.github/workflows/release-desktop.yml
 yaml_syntax_check .github/workflows/release-orchestrator.yml
 
+bash "${ROOT}/docs-linhay/scripts/check-log-contract-parity.sh"
+
 run neptune-gateway-swift "\"${SWIFT_BIN}\" test"
 run neptune-sdk-ios "xcrun swift test"
 run neptune-sdk-android "./gradlew test"
