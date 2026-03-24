@@ -259,3 +259,15 @@
 - BF: 父仓（发布前 preflight 集成门禁固化）
   - 目标：`release-orchestrator` 在分发 release 前默认执行 `run-all-checks.sh`，并默认开启 Harmony build gate
   - 验证目标：`release-orchestrator.yml` 与 `run-all-checks.sh` 语法通过，且新增 release workflows 纳入 YAML 校验清单
+
+## 第十九轮并行（进行中）
+- BG: demo 工程（Web SDK 最小 demo 集成 + 冒烟脚本）
+  - 目标：落地 `Web SDK -> Gateway -> logs/sources/metrics` 端到端冒烟链路，并提供父仓一键执行脚本
+  - 验证目标：`docs-linhay/scripts/smoke-demo-web.sh` 可拉起 gateway 并跑通 `neptune-sdk-web/examples/smoke-demo/run.cjs`
+
+## 第十九轮结果
+- BG: done (`neptune-sdk-web@6d0fb4a` + 父仓 `smoke-demo-web.sh`)
+
+## 第十九轮验证
+- `bash -n docs-linhay/scripts/smoke-demo-web.sh` 通过
+- `bash docs-linhay/scripts/smoke-demo-web.sh` 通过（`queried_records=3`，`source_count=1`）
