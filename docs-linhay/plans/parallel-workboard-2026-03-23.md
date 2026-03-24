@@ -403,3 +403,20 @@
   - sdk-harmony: 过滤/持久化/demo-smoke 脚本通过
   - sdk-web: `npm test && npm run build` 通过
   - inspector-h5: `npm test && npm run build` 通过
+
+## 第二十六轮并行（进行中）
+- BX: neptune-inspector-h5（desktop 空白页修复）
+- BY: neptune-sdk-ios（runtime 恢复后 simulator 实机冒烟）
+
+## 第二十六轮结果
+- BX: done（`neptune-inspector-h5@6dfdb18`，desktop 构建改为 `vite build --base ./`，修复 `file://` 资源绝对路径导致的空白）
+- BY: done（iOS simulator demo 成功）
+
+## 第二十六轮验证
+- inspector:
+  - `neptune-inspector-h5/dist/index.html` 资源路径由 `/assets/...` 变为 `./assets/...`
+  - desktop app 重打包后 smoke 通过（`.app` 结构、inspector 资源存在）
+- iOS:
+  - runtime：`iOS 26.3 (26.3.1 - 23D8133)` 可用
+  - 执行：`NEPTUNE_DEMO_SIMULATOR_ID=1126FA83-5C54-4803-ABC4-FBBE05A9FCDD bash scripts/simulator-demo.sh`
+  - 关键结果：`** BUILD SUCCEEDED **`、`simctl launch` 成功（`com.neptunekit.demo.ios: 19782`）
