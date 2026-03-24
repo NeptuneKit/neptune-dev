@@ -245,3 +245,7 @@
 ## 第十五轮验证
 - gateway：`release-cli.yml` YAML 可解析；`build-cli-release.sh` 语法校验通过
 - desktop：`package-desktop.yml` YAML 可解析；`package-macos-app.sh --dry-run` 可执行
+
+## 第十六轮并行（占位）
+- BC: neptune-gateway-swift（gateway tag release）
+- BD: neptune-desktop-macos（desktop zip+release）

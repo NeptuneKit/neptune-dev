@@ -11,6 +11,13 @@ resolve_swift() {
   command -v swift
 }
 
+yaml_syntax_check() {
+  local file="$1"
+  if [[ -f "${ROOT}/${file}" ]]; then
+    ruby -e 'require "yaml"; YAML.load_file(ARGV[0])' "${ROOT}/${file}" >/dev/null
+  fi
+}
+
 run() {
   local repo="$1"
   local cmd="$2"
@@ -19,6 +26,9 @@ run() {
 }
 
 SWIFT_BIN="$(resolve_swift)"
+
+yaml_syntax_check neptune-gateway-swift/.github/workflows/release-cli.yml
+yaml_syntax_check neptune-desktop-macos/.github/workflows/package-desktop.yml
 
 run neptune-gateway-swift "\"${SWIFT_BIN}\" test"
 run neptune-sdk-ios "xcrun swift test"
