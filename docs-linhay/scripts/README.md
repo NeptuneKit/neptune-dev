@@ -26,5 +26,10 @@
   - 可选：`NEPTUNE_DEMO_HARMONY_BUILD=1` 追加 `ohpm install --all` + `assembleHar`
   - 可选：`NEPTUNE_CHECK_ANDROID_SIM=1` 追加 Android 模拟器安装/启动校验
   - 可选：`NEPTUNE_CHECK_HARMONY_SIM=1` 追加 Harmony 模拟器 `aa start` 校验
+- `smoke-parallel-clients-desktop.sh`：并行执行三条冒烟线并汇总结果：
+  - `native`：`smoke-demo-native.sh`
+  - `web`：`smoke-demo-web.sh`
+  - `desktop`：inspector desktop assets 构建 + desktop app 打包 + `smoke-test-app.sh`
+  - 日志输出目录：`.build/smoke-logs/`
 
 说明：脚本只做编排，不承载子仓实现逻辑；父仓 GitHub Actions 会直接调用它作为集成门禁。

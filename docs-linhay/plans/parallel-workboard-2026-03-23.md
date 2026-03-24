@@ -420,3 +420,28 @@
   - runtime：`iOS 26.3 (26.3.1 - 23D8133)` 可用
   - 执行：`NEPTUNE_DEMO_SIMULATOR_ID=1126FA83-5C54-4803-ABC4-FBBE05A9FCDD bash scripts/simulator-demo.sh`
   - 关键结果：`** BUILD SUCCEEDED **`、`simctl launch` 成功（`com.neptunekit.demo.ios: 19782`）
+
+## 第二十七轮并行（进行中）
+- BZ: 父仓（多客户端 + desktop 并行冒烟编排）
+- CA: 并行 smoke 实测（native/web/desktop）
+
+## 第二十七轮结果
+- BZ: done（新增 `docs-linhay/scripts/smoke-parallel-clients-desktop.sh`）
+- CA: done（native + web + desktop 三条线并行 smoke 全部通过）
+
+## 第二十七轮验证
+- 并行执行：
+  - `bash docs-linhay/scripts/smoke-parallel-clients-desktop.sh`
+- 输出：
+  - `[PASS] native`
+  - `[PASS] web`
+  - `[PASS] desktop`
+  - `[parallel-smoke] all smoke jobs passed`
+- 覆盖面：
+  - native：`smoke-demo-native.sh`（iOS/Android/Harmony）
+  - web：`smoke-demo-web.sh`
+  - desktop：inspector desktop assets 构建 + app 打包 + smoke-test
+- 日志目录：
+  - `.build/smoke-logs/native.log`
+  - `.build/smoke-logs/web.log`
+  - `.build/smoke-logs/desktop.log`
