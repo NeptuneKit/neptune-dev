@@ -202,3 +202,21 @@
 - sdk-web：`npm ci`、`npm test`、`npm run build`、`npm pack --dry-run` 通过
 - sdk-ios：`xcrun swift test` 通过
 - sdk-android：`./gradlew test` 通过
+
+## 第十三轮并行（进行中）
+- AT: neptune-desktop-macos（GitHub Actions CI）
+- AU: neptune-sdk-harmony（GitHub Actions CI + 手动 Harmony build 开关）
+- AV: neptune-contracts（OpenAPI/fixtures 契约 CI）
+- AW: 父仓（集成 CI 工作流，调用 run-all-checks）
+
+## 第十三轮结果
+- AT: done (`neptune-desktop-macos@bd87606`)
+- AU: done (`neptune-sdk-harmony@06faaf1`)
+- AV: done (`neptune-contracts@b63df3b`)
+- AW: done（父仓 `.github/workflows/integration.yml`，commit: `4ee0c63`）
+
+## 第十三轮验证
+- desktop：`swift build`、`swift test` 通过
+- harmony：默认 CI 校验脚本通过；手动开关可跑 `ohpm install --all` + `assembleHar`
+- contracts：OpenAPI YAML + fixtures JSON/NDJSON 语法校验通过
+- 父仓：workflow YAML 可解析，`run-all-checks.sh` 语法通过
