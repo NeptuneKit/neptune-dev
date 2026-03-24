@@ -271,3 +271,22 @@
 ## 第十九轮验证
 - `bash -n docs-linhay/scripts/smoke-demo-web.sh` 通过
 - `bash docs-linhay/scripts/smoke-demo-web.sh` 通过（`queried_records=3`，`source_count=1`）
+
+## 第二十轮并行（进行中）
+- BH: neptune-sdk-ios（iOS demo 冒烟链路）
+- BI: neptune-sdk-android（Android demo 冒烟链路）
+- BJ: neptune-sdk-harmony（Harmony demo 冒烟链路）
+- BK: 父仓（多端 demo 一键编排）
+  - 目标：提供 `iOS + Android + Harmony` 一键 smoke 脚本，并将子仓 demo 结果固定到父仓文档/记忆
+
+## 第二十轮结果
+- BH: done (`neptune-sdk-ios@a13249b`)
+- BI: done (`neptune-sdk-android@7d8875e`)
+- BJ: done (`neptune-sdk-harmony@cfd1da5`)
+- BK: done（新增 `docs-linhay/scripts/smoke-demo-native.sh`）
+
+## 第二十轮验证
+- iOS：`cd neptune-sdk-ios && ./scripts/smoke-demo.sh` 通过（`SMOKE_RESULT ok=true`）
+- Android：`cd neptune-sdk-android && ./gradlew smokeDemo` 通过
+- Harmony：`cd neptune-sdk-harmony && node ./scripts/demo-smoke.mjs` 通过（`demo-smoke: ok`）
+- 父仓：`bash docs-linhay/scripts/smoke-demo-native.sh` 通过（`all native smoke demos passed`）
