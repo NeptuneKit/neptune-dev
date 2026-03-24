@@ -25,7 +25,7 @@
 ├── neptune-sdk-ios/         # git submodule
 ├── neptune-sdk-android/     # git submodule
 ├── neptune-sdk-harmony/     # git submodule
-└── neptune-sdk-web/         # git submodule (待定)
+└── neptune-sdk-web/         # git submodule
 ```
 
 ## 子仓职责
@@ -37,7 +37,7 @@
 - `neptune-sdk-ios`: iOS SDK（SPM）
 - `neptune-sdk-android`: Android SDK（AAR）
 - `neptune-sdk-harmony`: Harmony SDK（ohpm）
-- `neptune-sdk-web`: Web SDK（npm，待定）
+- `neptune-sdk-web`: Web SDK（npm）
 
 ## 约束
 

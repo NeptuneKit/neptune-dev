@@ -220,3 +220,16 @@
 - harmony：默认 CI 校验脚本通过；手动开关可跑 `ohpm install --all` + `assembleHar`
 - contracts：OpenAPI YAML + fixtures JSON/NDJSON 语法校验通过
 - 父仓：workflow YAML 可解析，`run-all-checks.sh` 语法通过
+
+## 第十四轮并行（进行中）
+- AX: neptune-desktop-macos（desktop packaging）
+- AY: neptune-gateway-swift（gateway cli release）
+- AZ: neptune-inspector-h5（inspector asset pipeline）
+
+## 第十四轮结果
+- AX: done (`neptune-desktop-macos@4424598`)
+- AZ: done (`neptune-inspector-h5@1ae2c66`)
+- AY: 进行中（gateway cli release）
+
+## 第十四轮备注
+- 本轮已回填 desktop / inspector 阶段结果；gateway 继续推进，待子仓提交后再补 commit、验证与阻塞项
