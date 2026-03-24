@@ -156,3 +156,18 @@
 - neptune-sdk-harmony：过滤脚本与 sources 脚本通过
 - neptune-desktop-macos：`swift build`、`swift test` 通过
 - 父仓总门禁：更新后的 `docs-linhay/scripts/run-all-checks.sh` 全部通过
+
+## 第十轮并行（进行中）
+- AK: neptune-sdk-ios（本地持久化队列，优先 GRDB）
+- AL: neptune-sdk-android（本地持久化队列，优先 SQLDelight/Room）
+- AM: neptune-sdk-harmony（官方存储能力持久化骨架/落地）
+
+## 第十轮结果
+- AK: done (`neptune-sdk-ios@550ad17`)
+- AL: done (`neptune-sdk-android@ae7af29`)
+- AM: done (`neptune-sdk-harmony@fd51a74`)
+
+## 第十轮验证
+- neptune-sdk-ios：`xcrun swift test` 通过（8 tests）
+- neptune-sdk-android：`./gradlew test` 通过（含持久化队列测试）
+- neptune-sdk-harmony：`verify-log-persistence.mjs` 通过（含来源/过滤脚本）
