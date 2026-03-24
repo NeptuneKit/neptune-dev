@@ -29,6 +29,7 @@ SWIFT_BIN="$(resolve_swift)"
 
 yaml_syntax_check neptune-gateway-swift/.github/workflows/release-cli.yml
 yaml_syntax_check neptune-desktop-macos/.github/workflows/package-desktop.yml
+yaml_syntax_check .github/workflows/release-orchestrator.yml
 
 run neptune-gateway-swift "\"${SWIFT_BIN}\" test"
 run neptune-sdk-ios "xcrun swift test"

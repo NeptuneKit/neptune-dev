@@ -249,3 +249,8 @@
 ## 第十六轮并行（占位）
 - BC: neptune-gateway-swift（gateway tag release）
 - BD: neptune-desktop-macos（desktop zip+release）
+
+## 第十七轮并行（占位）
+- BE: 父仓（统一发布编排入口）
+  - 目标：新增 `workflow_dispatch` 编排入口，透传 `gateway_tag` / `desktop_tag`，按需触发 `neptune-gateway-swift` 与 `neptune-desktop-macos` 的 release workflow，只做调度，不做构建
+  - 验证目标：父仓 workflow YAML 可解析，`run-all-checks.sh` 纳入新 workflow 的语法校验

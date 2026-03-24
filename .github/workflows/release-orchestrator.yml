@@ -1,0 +1,89 @@
+name: Release Orchestrator
+
+on:
+  workflow_dispatch:
+    inputs:
+      gateway_tag:
+        description: "Gateway release tag to publish when run_gateway is true"
+        required: false
+        default: ""
+        type: string
+      desktop_tag:
+        description: "Desktop release tag to publish when run_desktop is true"
+        required: false
+        default: ""
+        type: string
+      run_gateway:
+        description: "Dispatch the neptune-gateway-swift release workflow"
+        required: false
+        default: false
+        type: boolean
+      run_desktop:
+        description: "Dispatch the neptune-desktop-macos release workflow"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      RUN_GATEWAY: ${{ inputs.run_gateway }}
+      RUN_DESKTOP: ${{ inputs.run_desktop }}
+      GATEWAY_TAG: ${{ inputs.gateway_tag }}
+      DESKTOP_TAG: ${{ inputs.desktop_tag }}
+      GH_TOKEN: ${{ secrets.NEPTUNE_RELEASE_ORCHESTRATOR_TOKEN }}
+
+    steps:
+      - name: Validate inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${RUN_GATEWAY}" != "true" && "${RUN_DESKTOP}" != "true" ]]; then
+            echo "At least one of run_gateway or run_desktop must be true." >&2
+            exit 1
+          fi
+
+          if [[ "${RUN_GATEWAY}" == "true" && -z "${GATEWAY_TAG}" ]]; then
+            echo "gateway_tag is required when run_gateway is true." >&2
+            exit 1
+          fi
+
+          if [[ "${RUN_DESKTOP}" == "true" && -z "${DESKTOP_TAG}" ]]; then
+            echo "desktop_tag is required when run_desktop is true." >&2
+            exit 1
+          fi
+
+          if [[ -z "${GH_TOKEN}" ]]; then
+            echo "Secret NEPTUNE_RELEASE_ORCHESTRATOR_TOKEN is required for cross-repository dispatch." >&2
+            exit 1
+          fi
+
+      - name: Dispatch gateway release
+        if: ${{ inputs.run_gateway }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/NeptuneKit/neptune-gateway-swift/actions/workflows/release-cli-tag.yml/dispatches \
+            -f ref=main \
+            -f "inputs[tag_name]=${GATEWAY_TAG}"
+
+      - name: Dispatch desktop release
+        if: ${{ inputs.run_desktop }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/NeptuneKit/neptune-desktop-macos/actions/workflows/release-desktop.yml/dispatches \
+            -f ref=main \
+            -f "inputs[tag_name]=${DESKTOP_TAG}"
