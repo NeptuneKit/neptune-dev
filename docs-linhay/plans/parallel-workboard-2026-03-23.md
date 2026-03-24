@@ -310,6 +310,30 @@
 - 父仓：`NEPTUNE_CHECK_NATIVE_SMOKE=1 NEPTUNE_CHECK_WEB_SMOKE=1 bash docs-linhay/scripts/run-all-checks.sh` 全量通过
 
 ## 第二十二轮并行（进行中）
+- BP: neptune-sdk-ios（真实 simulator demo app 启动验证）
+- BQ: neptune-sdk-android（本机 Android SDK + AVD 环境安装与 demo app 真机模拟器验证）
+- BR: neptune-sdk-harmony（entry demo 应用安装与启动验证）
+
+## 第二十二轮结果
+- BP: 部分完成（`neptune-sdk-ios@7c1df8d` 已有真实 demo app；本机 simulator runtime 当前缺失）
+- BQ: done（`neptune-sdk-android@860b945` + 本机 AVD `Neptune_API_34` 创建并跑通）
+- BR: 部分完成（`neptune-sdk-harmony@cae2760` + 目标 `127.0.0.1:5555` 已安装 HAP，但启动受锁屏策略阻塞）
+
+## 第二十二轮验证
+- Android 环境：
+  - `brew install --cask android-commandlinetools android-platform-tools` 成功
+  - `sdkmanager ... system-images;android-34;google_apis;arm64-v8a` 成功
+  - `avdmanager create avd -n Neptune_API_34 ...` 成功
+- Android demo：
+  - `./gradlew :app:installDebug` 成功安装到 emulator
+  - `adb shell am start -n com.neptunekit.sdk.android.examples.simulator/.MainActivity` 成功拉起
+  - `adb logcat` 捕获 `NeptuneSimulatorDemo` 业务日志（clickCount/queuedRecords）
+- Harmony demo：
+  - `node scripts/verify-demo-entry.mjs`、`./scripts/build-demo-entry.sh` 通过
+  - `hdc install -r entry-default-unsigned.hap` 成功
+  - `aa start -b io.github.neptune.sdk.harmony -m entry -a EntryAbility` 被设备锁屏策略拦截（`10106102`）
+
+## 第二十二轮并行（进行中）
 - BP: neptune-sdk-ios（真实 iOS Simulator Demo App）
 - BQ: neptune-sdk-android（真实 Android Simulator Demo App）
 - BR: neptune-sdk-harmony（真实 Harmony entry Demo App）
