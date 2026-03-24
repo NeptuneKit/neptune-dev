@@ -45,6 +45,10 @@ if [[ "${NEPTUNE_CHECK_HARMONY_BUILD:-0}" == "1" ]]; then
   run neptune-sdk-harmony "ohpm install --all && ./hvigorw --mode module -p module=library assembleHar --no-daemon"
 fi
 
+if [[ "${NEPTUNE_CHECK_ANDROID_HARMONY_SMOKE:-0}" == "1" ]]; then
+  (cd "${ROOT}" && bash docs-linhay/scripts/smoke-demo-android-harmony.sh)
+fi
+
 if [[ "${NEPTUNE_CHECK_NATIVE_SMOKE:-0}" == "1" ]]; then
   (cd "${ROOT}" && bash docs-linhay/scripts/smoke-demo-native.sh)
 fi

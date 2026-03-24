@@ -367,3 +367,19 @@
   - `uitest dumpLayout` 可见 Demo 页面关键文案（`Neptune SDK Harmony Demo`、`写入 Demo 日志批次`）
 - iOS：
   - `xcrun simctl list runtimes` 当前输出为空（环境阻塞仍在）
+
+## 第二十四轮并行（进行中）
+- BV: 父仓（Android + Harmony 二端独立 smoke 编排）
+
+## 第二十四轮结果
+- BV: done（新增 `docs-linhay/scripts/smoke-demo-android-harmony.sh`，默认仅跑 Android/Harmony 协议 smoke，可选开启双端模拟器校验）
+
+## 第二十四轮验证
+- `bash docs-linhay/scripts/smoke-demo-android-harmony.sh` 通过
+- `NEPTUNE_CHECK_HARMONY_SIM=1 bash docs-linhay/scripts/smoke-demo-android-harmony.sh` 通过（`aa start ...` 成功）
+- 新增 Harmony 模拟器证据：
+  - `docs-linhay/screenshots/20260324/harmony/20260324-harmony-simulator-demo-after-v06.jpeg`
+  - `docs-linhay/screenshots/20260324/harmony/20260324-harmony-entry-layout-after-v06.json`
+- Android 模拟器现状：
+  - 协议 smoke（`./gradlew smokeDemo`）稳定通过
+  - 实机安装链路受本机 adb/emulator 在线状态抖动影响，已下沉为可选校验项（`NEPTUNE_CHECK_ANDROID_SIM=1`）
