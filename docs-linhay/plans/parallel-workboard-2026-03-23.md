@@ -229,7 +229,7 @@
 ## 第十四轮结果
 - AX: done (`neptune-desktop-macos@4424598`)
 - AZ: done (`neptune-inspector-h5@1ae2c66`)
-- AY: 进行中（gateway cli release）
+- AY: done (`neptune-gateway-swift@e00f74e`)
 
 ## 第十四轮备注
-- 本轮已回填 desktop / inspector 阶段结果；gateway 继续推进，待子仓提交后再补 commit、验证与阻塞项
+- 三条并行线均已完成并推送；父仓已完成 submodule bump 与总门禁回归
