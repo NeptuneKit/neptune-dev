@@ -254,3 +254,8 @@
 - BE: 父仓（统一发布编排入口）
   - 目标：新增 `workflow_dispatch` 编排入口，透传 `gateway_tag` / `desktop_tag`，按需触发 `neptune-gateway-swift` 与 `neptune-desktop-macos` 的 release workflow，只做调度，不做构建
   - 验证目标：父仓 workflow YAML 可解析，`run-all-checks.sh` 纳入新 workflow 的语法校验
+
+## 第十八轮并行（进行中）
+- BF: 父仓（发布前 preflight 集成门禁固化）
+  - 目标：`release-orchestrator` 在分发 release 前默认执行 `run-all-checks.sh`，并默认开启 Harmony build gate
+  - 验证目标：`release-orchestrator.yml` 与 `run-all-checks.sh` 语法通过，且新增 release workflows 纳入 YAML 校验清单

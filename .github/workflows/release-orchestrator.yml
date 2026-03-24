@@ -23,9 +23,43 @@ on:
         required: false
         default: false
         type: boolean
+      run_preflight:
+        description: "Run parent integration checks before dispatching releases"
+        required: false
+        default: true
+        type: boolean
+      preflight_check_harmony_build:
+        description: "Enable Harmony build gate during preflight checks"
+        required: false
+        default: true
+        type: boolean
 
 jobs:
+  preflight:
+    if: ${{ inputs.run_preflight }}
+    runs-on: macos-latest
+    timeout-minutes: 120
+
+    env:
+      NEPTUNE_CHECK_HARMONY_BUILD: "0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Enable Harmony build gate
+        if: ${{ inputs.preflight_check_harmony_build }}
+        run: echo "NEPTUNE_CHECK_HARMONY_BUILD=1" >> "$GITHUB_ENV"
+
+      - name: Run preflight integration checks
+        run: bash docs-linhay/scripts/run-all-checks.sh
+
   dispatch:
+    needs: [preflight]
+    if: ${{ !inputs.run_preflight || needs.preflight.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
