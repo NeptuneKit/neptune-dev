@@ -1,0 +1,36 @@
+name: Integration CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      check_harmony_build:
+        description: "是否额外执行 Harmony 构建校验"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  checks:
+    runs-on: macos-latest
+    timeout-minutes: 90
+
+    env:
+      NEPTUNE_CHECK_HARMONY_BUILD: "0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Enable Harmony build gate
+        if: github.event_name == 'workflow_dispatch' && inputs.check_harmony_build
+        run: echo "NEPTUNE_CHECK_HARMONY_BUILD=1" >> "$GITHUB_ENV"
+
+      - name: Run integration checks
+        run: bash docs-linhay/scripts/run-all-checks.sh
