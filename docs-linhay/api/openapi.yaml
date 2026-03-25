@@ -5,9 +5,40 @@ info:
   description: |
     NeptuneKit v2 统一日志系统契约。
     该文件定义中心网关与客户端导出协议的最小可用骨架。
+    HTTP 查询 + WS 实时/下发双通道为主契约。
 servers:
   - url: http://127.0.0.1:18765
+    description: HTTP query channel.
+  - url: ws://127.0.0.1:18765
+    description: WebSocket realtime / dispatch channel.
 paths:
+  /v2/ws:
+    get:
+      summary: Realtime and downstream WebSocket channel
+      operationId: openRealtimeChannel
+      description: |
+        主实时通道。Inspector 通过 `hello` 完成握手，通过 `heartbeat` 保活；
+        `command.send` 进入命令下发链路，网关会按当前 selected 客户端集合执行 HTTP 回调，
+        再通过 `ack`、`event.command_ack`、`event.command_summary` 和 `error` 回传结果。
+      responses:
+        '101':
+          description: Switching Protocols
+      x-neptune-websocket:
+        path: /v2/ws
+        transport: websocket
+        inbound:
+          $ref: '#/components/schemas/WsInboundMessage'
+        outbound:
+          $ref: '#/components/schemas/WsOutboundMessage'
+        messages:
+          - hello
+          - heartbeat
+          - command.send
+          - ack
+          - event.log_record
+          - event.command_ack
+          - event.command_summary
+          - error
   /v2/logs:ingest:
     post:
       summary: Ingest structured logs
@@ -159,6 +190,60 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Source'
+  /v2/clients:register:
+    post:
+      summary: Register or renew callback client
+      operationId: registerClient
+      description: |
+        客户端启动或前台活跃时调用该接口注册可回调地址。
+        网关以 `platform + appId + deviceId` 作为主键更新在线状态，默认 TTL 为 120 秒。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRegisterRequest'
+      responses:
+        '200':
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientRegisterResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /v2/clients:
+    get:
+      summary: List online callback clients
+      operationId: listClients
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientListResponse'
+  /v2/clients:selected:
+    put:
+      summary: Replace selected clients
+      operationId: replaceSelectedClients
+      description: |
+        桌面端提交全量勾选集，语义为覆盖写入（last-write-wins）。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientsSelectedRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientsSelectedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /v2/health:
     get:
       summary: Health check
@@ -448,6 +533,298 @@ components:
         version:
           type: string
           description: Gateway contract or deployment version exposed to clients.
+    ClientRegisterRequest:
+      type: object
+      required: [platform, appId, sessionId, deviceId, callbackEndpoint]
+      properties:
+        platform:
+          type: string
+          enum: [ios, android, harmony, web]
+        appId:
+          type: string
+        sessionId:
+          type: string
+        deviceId:
+          type: string
+        callbackEndpoint:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+    ClientSelector:
+      type: object
+      required: [platform, appId, deviceId]
+      properties:
+        platform:
+          type: string
+          enum: [ios, android, harmony, web]
+        appId:
+          type: string
+        deviceId:
+          type: string
+    ClientSnapshot:
+      type: object
+      required: [platform, appId, sessionId, deviceId, callbackEndpoint, lastSeenAt, expiresAt, ttlSeconds, selected]
+      properties:
+        platform:
+          type: string
+          enum: [ios, android, harmony, web]
+        appId:
+          type: string
+        sessionId:
+          type: string
+        deviceId:
+          type: string
+        callbackEndpoint:
+          type: string
+          format: uri
+        lastSeenAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        ttlSeconds:
+          type: integer
+          minimum: 0
+        selected:
+          type: boolean
+    ClientRegisterResponse:
+      type: object
+      required: [client]
+      properties:
+        client:
+          $ref: '#/components/schemas/ClientSnapshot'
+    ClientListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientSnapshot'
+    ClientsSelectedRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientSelector'
+        selected:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientSelector'
+    ClientsSelectedResponse:
+      type: object
+      required: [items, selectedCount, updatedAt]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientSelector'
+        selectedCount:
+          type: integer
+          minimum: 0
+        updatedAt:
+          type: string
+          format: date-time
+    WsClientContext:
+      type: object
+      description: Shared client identity used by WS messages.
+      properties:
+        clientId:
+          type: string
+        role:
+          type: string
+          enum: [sdk, inspector, unknown]
+        platform:
+          type: string
+          enum: [ios, android, harmony, web]
+          nullable: true
+        appId:
+          type: string
+          nullable: true
+        sessionId:
+          type: string
+          nullable: true
+        deviceId:
+          type: string
+          nullable: true
+    WsTarget:
+      type: object
+      description: Optional fan-out target used by command dispatch messages.
+      properties:
+        platforms:
+          type: array
+          items:
+            type: string
+            enum: [ios, android, harmony, web]
+        appIds:
+          type: array
+          items:
+            type: string
+        sessionIds:
+          type: array
+          items:
+            type: string
+        deviceIds:
+          type: array
+          items:
+            type: string
+    WsHelloMessage:
+      type: object
+      required: [type]
+      properties:
+        type:
+          const: hello
+        requestId:
+          type: string
+        role:
+          type: string
+          enum: [sdk, inspector, unknown]
+        platform:
+          type: string
+          enum: [ios, android, harmony, web]
+        appId:
+          type: string
+        sessionId:
+          type: string
+        deviceId:
+          type: string
+    WsHeartbeatMessage:
+      type: object
+      required: [type]
+      properties:
+        type:
+          const: heartbeat
+        requestId:
+          type: string
+        clientTime:
+          type: string
+          format: date-time
+    WsCommandSendMessage:
+      type: object
+      required: [type, command]
+      properties:
+        type:
+          const: command.send
+        requestId:
+          type: string
+        commandId:
+          type: string
+        command:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        target:
+          $ref: '#/components/schemas/WsTarget'
+    WsAckMessage:
+      type: object
+      required: [type, commandId, accepted, delivered]
+      properties:
+        type:
+          const: ack
+        requestId:
+          type: string
+        commandId:
+          type: string
+        accepted:
+          type: boolean
+        delivered:
+          type: integer
+          minimum: 0
+    WsEventLogRecordMessage:
+      type: object
+      required: [type, topic, topicId, record]
+      properties:
+        type:
+          const: event.log_record
+        topic:
+          const: log_record
+        topicId:
+          type: integer
+          const: 101
+        record:
+          $ref: '#/components/schemas/LogRecord'
+    WsEventCommandAckMessage:
+      type: object
+      required: [type, commandId, command, status, timestamp]
+      properties:
+        type:
+          const: event.command_ack
+        requestId:
+          type: string
+        commandId:
+          type: string
+        command:
+          type: string
+        status:
+          type: string
+          enum: [ok, error]
+        message:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+        client:
+          $ref: '#/components/schemas/WsClientContext'
+    WsEventCommandSummaryMessage:
+      type: object
+      required: [type, commandId, command, delivered, acked, timeout]
+      properties:
+        type:
+          const: event.command_summary
+        requestId:
+          type: string
+        commandId:
+          type: string
+        command:
+          type: string
+        delivered:
+          type: integer
+          minimum: 0
+        acked:
+          type: integer
+          minimum: 0
+        timeout:
+          type: integer
+          minimum: 0
+    WsErrorMessage:
+      type: object
+      required: [type, message]
+      properties:
+        type:
+          const: error
+        requestId:
+          type: string
+        code:
+          type: string
+          enum: [invalid_payload, invalid_target, unsupported_command, forbidden_role]
+        message:
+          type: string
+        detail:
+          type: string
+          nullable: true
+    WsInboundMessage:
+      oneOf:
+        - $ref: '#/components/schemas/WsHelloMessage'
+        - $ref: '#/components/schemas/WsHeartbeatMessage'
+        - $ref: '#/components/schemas/WsCommandSendMessage'
+      discriminator:
+        propertyName: type
+    WsOutboundMessage:
+      oneOf:
+        - $ref: '#/components/schemas/WsAckMessage'
+        - $ref: '#/components/schemas/WsEventLogRecordMessage'
+        - $ref: '#/components/schemas/WsEventCommandAckMessage'
+        - $ref: '#/components/schemas/WsEventCommandSummaryMessage'
+        - $ref: '#/components/schemas/WsErrorMessage'
+      discriminator:
+        propertyName: type
     ErrorResponse:
       type: object
       required: [error]

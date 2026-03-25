@@ -8,7 +8,7 @@
 - 父仓：`neptune-dev`（当前仓库）  
 - 子仓：8 个 `neptune-*` submodule（已接入）
 - 网关拓扑：CLI 中心聚合，Inspector 只连接 CLI
-- 实时策略：HTTP 长轮询（移除 `/v2/ws`）
+- 实时策略：HTTP 查询 + WS 实时/下发双通道
 - SDK 模式：iOS/Android/Harmony 统一“本地落地 + 本地 HTTP serve + CLI 拉取”
 - Web SDK：本期待定，不阻塞主链路
 - CLI 必须支持代理：
@@ -82,3 +82,17 @@
 3. 在 `neptune-sdk-harmony` 落地本地 HTTP serve 最小可运行样例
 4. 在 `neptune-sdk-ios` 与 `neptune-sdk-android` 建立同字段模型与导出端点空实现
 5. 父仓创建第一轮 submodule bump PR，记录到 `memory/2026-03-23.md`
+
+## 6. 2026-03-25 变更冻结（主动回调模型）
+
+- SDK 不再默认建立 `SDK -> Gateway` WS 主链路。
+- 新增网关在线注册链路：`POST /v2/clients:register`（30s 续约，120s TTL）。
+- 新增客户端视图与勾选控制：
+  - `GET /v2/clients`
+  - `PUT /v2/clients:selected`（全量覆盖，last-write-wins）
+- Inspector 保持 `GET /v2/ws`，`command.send` 由网关转为 HTTP 回调 selected+online 客户端：
+  - `POST <callbackEndpoint>/v2/client/command`（v1 只实现 `ping`）
+  - 回流 `ack / event.command_ack / event.command_summary`
+- 主契约已同步到：
+  - `docs-linhay/api/openapi.yaml`
+  - `neptune-contracts/openapi/openapi.yaml`

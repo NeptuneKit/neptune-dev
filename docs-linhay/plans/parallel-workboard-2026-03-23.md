@@ -218,6 +218,44 @@
 ## 第十三轮验证
 - desktop：`swift build`、`swift test` 通过
 - harmony：默认 CI 校验脚本通过；手动开关可跑 `ohpm install --all` + `assembleHar`
+
+## 第十四轮并行（WS 下发主链路）
+- AX: neptune-gateway-swift（`/v2/ws` command.send/dispatch/ack/summary + log_record）
+- AY: neptune-inspector-h5（WS 管理器 + ping 下发 + ACK 面板）
+- AZ: neptune-sdk-ios（URLSessionWebSocketTask 启动即连 + ping ack）
+- BA: neptune-sdk-android（OkHttp WebSocket 启动即连 + ping ack）
+- BB: neptune-sdk-harmony（NetworkKit WebSocket 启动即连 + ping ack）
+- BC: contracts/docs（`/v2/ws` 契约恢复为必选 + parity 门禁切换）
+
+## 第十四轮结果
+- AX: done（gateway ws hub + routes + tests）
+- AY: done（inspector ws + ui + tests）
+- AZ: done（ios ws client + demo + tests）
+- BA: done（android ws client + demo + tests）
+- BB: done（harmony ws client + verify + build）
+- BC: done（openapi + parity + 文档）
+
+## 第十四轮验证
+- gateway：`swift test` 通过（33 passed, 1 skipped）
+- inspector：`npx vitest run`、`npm run build` 通过（22 tests）
+- ios：`xcrun swift test` 通过（20 tests）
+- android：`./gradlew test` 通过
+- harmony：`node scripts/verify-gateway-ws-contract.mjs` + `assembleHar` 通过
+- contracts：`bash docs-linhay/scripts/check-log-contract-parity.sh` 通过
+- 集成冒烟：`bash docs-linhay/scripts/smoke-parallel-clients-desktop.sh` 全通过（native/web/desktop 全 PASS）
+
+## 第十五轮并行（WS 专项门禁）
+- BD: 父仓脚本（`run-ws-checks.sh` 聚焦 WS 契约测试）
+- BE: 父仓脚本（`smoke-ws-live.sh` 活体 WS 下发闭环）
+
+## 第十五轮结果
+- BD: done（新增 WS 专项门禁，覆盖 gateway/inspector/ios/android/harmony）
+- BE: done（新增活体 smoke：自启 gateway + 3 sdk + 1 inspector）
+
+## 第十五轮验证
+- `bash docs-linhay/scripts/run-ws-checks.sh` 通过
+- `bash docs-linhay/scripts/smoke-ws-live.sh` 通过
+- `smoke-ws-live` 实测输出：`acceptedAck.delivered=2`、`summary.acked=2`、`summary.timeout=0`
 - contracts：OpenAPI YAML + fixtures JSON/NDJSON 语法校验通过
 - 父仓：workflow YAML 可解析，`run-all-checks.sh` 语法通过
 
@@ -258,6 +296,24 @@
 ## 第十八轮并行（进行中）
 - BF: 父仓（发布前 preflight 集成门禁固化）
   - 目标：`release-orchestrator` 在分发 release 前默认执行 `run-all-checks.sh`，并默认开启 Harmony build gate
+
+## 第十九轮并行（进行中）
+- BG: neptune-sdk-ios（gateway discovery：mDNS 优先 + DSN 回退）
+- BH: neptune-sdk-android（gateway discovery：JmDNS + DSN 回退）
+- BI: neptune-sdk-harmony（gateway discovery：可注入 mDNS provider + DSN 回退）
+- BJ: 父仓（discovery 专项计划与回归脚本）
+
+## 第十九轮结果
+- BG: done（新增 `Sources/NeptuneSDKiOS/Discovery/*` + `GatewayDiscoveryTests`）
+- BH: done（新增 `sdk/.../discovery/*` + `GatewayDiscoveryTest`，引入 `org.jmdns:jmdns:3.6.3`）
+- BI: done（新增 `src/main/ets/discovery/*` + `scripts/verify-gateway-discovery.mjs`）
+- BJ: done（新增 `docs-linhay/plans/2026-03-24-auto-discovery-parallel.md` 与 `docs-linhay/scripts/run-discovery-checks.sh`）
+
+## 第十九轮验证
+- iOS：`xcrun swift test` 通过（13 tests）
+- Android：`./gradlew :sdk:test` 通过
+- Harmony：`node ./scripts/verify-gateway-discovery.mjs`、`./hvigorw --mode module -p module=library assembleHar --no-daemon` 通过
+- 父仓：`./docs-linhay/scripts/run-discovery-checks.sh` 通过
   - 验证目标：`release-orchestrator.yml` 与 `run-all-checks.sh` 语法通过，且新增 release workflows 纳入 YAML 校验清单
 
 ## 第十九轮并行（进行中）

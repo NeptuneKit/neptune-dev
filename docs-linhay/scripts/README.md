@@ -7,10 +7,21 @@
   - 可选：`NEPTUNE_CHECK_ANDROID_HARMONY_SMOKE=1` 时追加执行 `smoke-demo-android-harmony.sh`
   - 可选：`NEPTUNE_CHECK_NATIVE_SMOKE=1` 时追加执行 `smoke-demo-native.sh`
   - 可选：`NEPTUNE_CHECK_WEB_SMOKE=1` 时追加执行 `smoke-demo-web.sh`
+  - 可选：`NEPTUNE_CHECK_WS_SMOKE=1` 时追加执行 `run-ws-checks.sh`
+  - 可选：`NEPTUNE_CHECK_WS_LIVE_SMOKE=1` 时追加执行 `smoke-ws-live.sh`
+- `run-ws-checks.sh`：WS 下发专项门禁（协议链路最小闭环）。
+  - gateway：`command.send -> dispatch -> command.ack -> event.command_ack -> event.command_summary`
+  - inspector：`tests/ws.test.ts`
+  - iOS：`NeptuneSDKiOSGatewayWebSocket` 测试组
+  - Android：`GatewayWebSocketClientTest` + `GatewayWebSocketReconnectPolicyTest`
+  - Harmony：`verify-gateway-ws-contract.mjs`
 - `run-log-checks.sh`：日志批次专用门禁，仅覆盖日志域能力（contracts/gateway/sdk-web+ios+android+harmony/inspector）。
+- `run-discovery-checks.sh`：自动发现专项门禁，覆盖 iOS / Android / Harmony 三端 discovery 回归。
+  - iOS：`swift test`
+  - Android：`./gradlew :sdk:test`
+  - Harmony：`node ./scripts/verify-gateway-discovery.mjs`
 - `check-log-contract-parity.sh`：校验日志接口范围与契约同步：
-  - 必须包含：`/v2/logs:ingest`、`/v2/logs`、`/v2/metrics`、`/v2/sources`、`/v2/health`、`/v2/gateway/discovery`
-  - 禁止包含：`/v2/ws`
+  - 必须包含：`/v2/ws`、`/v2/logs:ingest`、`/v2/logs`、`/v2/metrics`、`/v2/sources`、`/v2/health`、`/v2/gateway/discovery`
   - 严格比对：`docs-linhay/api/openapi.yaml` 与 `neptune-contracts/openapi/openapi.yaml` 内容一致
 - `smoke-demo-web.sh`：拉起本地 gateway，并执行 `neptune-sdk-web/examples/smoke-demo/run.cjs` 做端到端冒烟。
   - 默认 gateway：`http://127.0.0.1:18765`
@@ -31,5 +42,8 @@
   - `web`：`smoke-demo-web.sh`
   - `desktop`：inspector desktop assets 构建 + desktop app 打包 + `smoke-test-app.sh`
   - 日志输出目录：`.build/smoke-logs/`
+- `smoke-ws-live.sh`：WS 下发活体验证（自启 gateway + 3 个模拟 sdk + 1 个 inspector）。
+  - 验证链路：`command.send -> ack -> event.command_ack -> event.command_summary`
+  - 默认端口：`19001`（可用 `NEPTUNE_WS_SMOKE_PORT` 改）
 
 说明：脚本只做编排，不承载子仓实现逻辑；父仓 GitHub Actions 会直接调用它作为集成门禁。

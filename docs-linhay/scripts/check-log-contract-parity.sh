@@ -20,10 +20,14 @@ require 'yaml'
 require 'set'
 
 expected_paths = Set[
+  '/v2/ws',
   '/v2/logs:ingest',
   '/v2/logs',
   '/v2/metrics',
   '/v2/sources',
+  '/v2/clients:register',
+  '/v2/clients',
+  '/v2/clients:selected',
   '/v2/health',
   '/v2/gateway/discovery'
 ]
@@ -37,9 +41,6 @@ ARGV.each do |path|
     abort "[contract-parity] #{path} missing paths: #{missing.to_a.join(', ')}"
   end
 
-  if paths.include?('/v2/ws')
-    abort "[contract-parity] #{path} still contains /v2/ws"
-  end
 end
 RUBY
 
