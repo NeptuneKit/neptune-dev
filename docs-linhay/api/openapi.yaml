@@ -5,21 +5,22 @@ info:
   description: |
     NeptuneKit v2 统一日志系统契约。
     该文件定义中心网关与客户端导出协议的最小可用骨架。
-    HTTP 查询 + WS 实时/下发双通道为主契约。
+    HTTP 查询 + WS 总线双通道为主契约。
+    WS 方向仅使用 `cli_to_client` 与 `client_to_cli`。
 servers:
   - url: http://127.0.0.1:18765
     description: HTTP query channel.
   - url: ws://127.0.0.1:18765
-    description: WebSocket realtime / dispatch channel.
+    description: WebSocket bus channel.
 paths:
   /v2/ws:
     get:
-      summary: Realtime and downstream WebSocket channel
+      summary: Realtime bus WebSocket channel
       operationId: openRealtimeChannel
       description: |
-        主实时通道。Inspector 通过 `hello` 完成握手，通过 `heartbeat` 保活；
-        `command.send` 进入命令下发链路，网关会按当前 selected 客户端集合执行 HTTP 回调，
-        再通过 `ack`、`event.command_ack`、`event.command_summary` 和 `error` 回传结果。
+        主实时总线通道。CLI 通过 `BusEnvelope` 以 `cli_to_client` 方向下发，
+        client 通过 `BusAck` 以 `client_to_cli` 方向回执。
+        旧兼容别名不再保留。
       responses:
         '101':
           description: Switching Protocols
@@ -27,18 +28,12 @@ paths:
         path: /v2/ws
         transport: websocket
         inbound:
-          $ref: '#/components/schemas/WsInboundMessage'
+          $ref: '#/components/schemas/BusAck'
         outbound:
-          $ref: '#/components/schemas/WsOutboundMessage'
+          $ref: '#/components/schemas/BusEnvelope'
         messages:
-          - hello
-          - heartbeat
-          - command.send
-          - ack
-          - event.log_record
-          - event.command_ack
-          - event.command_summary
-          - error
+          - bus.envelope
+          - bus.ack
   /v2/logs:ingest:
     post:
       summary: Ingest structured logs
@@ -132,12 +127,15 @@ paths:
       summary: Query logs
       operationId: queryLogs
       description: |
+        网关不落盘日志，改为按在线客户端 fan-out 查询并聚合返回。
+        - 指定 `platform/appId/sessionId` 时，仅转发到匹配客户端。
+        - 未指定三元过滤时，转发到所有在线客户端并聚合。
+
         `format=json` 返回 `LogRecordPage` 包装对象；`format=ndjson` 返回 `application/x-ndjson`，
         每行一个 `LogRecord`，记录顺序与 JSON 响应中的 `records` 保持一致。
 
-        当前长轮询策略为 `afterId + waitMs`。
-        当 `afterId` 指向的游标之后暂时没有新记录时，网关最多等待 `waitMs` 毫秒；
-        若超时仍无新记录，则返回空页，并保持 `nextCursor` 为请求中的 `afterId`。
+        网关可用时始终返回 `200`。若部分或全部客户端请求失败，
+        失败明细通过 `meta.partialFailures` 返回，主 `records` 可能为空。
       parameters:
         - $ref: '#/components/parameters/limit'
         - $ref: '#/components/parameters/beforeId'
@@ -449,13 +447,14 @@ components:
           items:
             $ref: '#/components/schemas/LogRecord'
         nextCursor:
-          type: integer
-          format: int64
+          type: string
           nullable: true
           description: Cursor for the next query window. Empty pages keep the incoming cursor value.
         hasMore:
           type: boolean
           description: Whether more records are immediately available after `nextCursor`.
+        meta:
+          $ref: '#/components/schemas/LogQueryMeta'
     Source:
       type: object
       description: A source identity currently known to the gateway.
@@ -494,7 +493,7 @@ components:
     MetricsSnapshot:
       type: object
       description: Aggregate gateway metrics at the moment of the request.
-      required: [ingestAcceptedTotal, sourceCount, totalRecords, droppedOverflow]
+      required: [ingestAcceptedTotal, sourceCount, retainedRecordCount, retentionMaxRecordCount, retentionMaxAgeSeconds, retentionDroppedTotal]
       properties:
         ingestAcceptedTotal:
           type: integer
@@ -502,12 +501,42 @@ components:
         sourceCount:
           type: integer
           description: Number of currently registered sources.
-        totalRecords:
+        retainedRecordCount:
           type: integer
-          description: Number of log records currently retained by the gateway.
-        droppedOverflow:
+          description: Deprecated retention counter kept for compatibility. Always `0` when gateway runs in pure relay mode.
+        retentionMaxRecordCount:
           type: integer
-          description: Number of records dropped because retention or capacity limits were exceeded.
+          description: Deprecated retention config mirror. `0` when gateway runs in pure relay mode.
+        retentionMaxAgeSeconds:
+          type: integer
+          description: Deprecated retention config mirror. `0` when gateway runs in pure relay mode.
+        retentionDroppedTotal:
+          type: integer
+          description: Deprecated retention counter mirror. `0` when gateway runs in pure relay mode.
+    LogQueryMeta:
+      type: object
+      properties:
+        partialFailures:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogQueryPartialFailure'
+    LogQueryPartialFailure:
+      type: object
+      required: [platform, appId, sessionId, deviceId, callbackEndpoint, reason]
+      properties:
+        platform:
+          type: string
+          enum: [ios, android, harmony, web]
+        appId:
+          type: string
+        sessionId:
+          type: string
+        deviceId:
+          type: string
+        callbackEndpoint:
+          type: string
+        reason:
+          type: string
     HealthSnapshot:
       type: object
       required: [ok, version]
@@ -533,9 +562,80 @@ components:
         version:
           type: string
           description: Gateway contract or deployment version exposed to clients.
+    BusTarget:
+      type: object
+      description: Optional fan-out selector for bus envelopes.
+      minProperties: 1
+      properties:
+        platforms:
+          type: array
+          items:
+            type: string
+            enum: [ios, android, harmony, web]
+        appIds:
+          type: array
+          items:
+            type: string
+        sessionIds:
+          type: array
+          items:
+            type: string
+        deviceIds:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+    BusEnvelope:
+      type: object
+      description: CLI -> client bus envelope.
+      required: [requestId, direction, kind, command, timestamp]
+      properties:
+        requestId:
+          type: string
+        direction:
+          type: string
+          enum: [cli_to_client]
+        kind:
+          type: string
+          enum: [command]
+        command:
+          type: string
+        target:
+          $ref: '#/components/schemas/BusTarget'
+        payload:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+      additionalProperties: false
+    BusAck:
+      type: object
+      description: Client -> CLI bus acknowledgement.
+      required: [status, timestamp]
+      properties:
+        requestId:
+          type: string
+        direction:
+          type: string
+          enum: [client_to_cli]
+        kind:
+          type: string
+          enum: [command, event, log]
+        command:
+          type: string
+        status:
+          type: string
+          enum: [ok, error]
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      additionalProperties: false
     ClientRegisterRequest:
       type: object
-      required: [platform, appId, sessionId, deviceId, callbackEndpoint]
+      required: [platform, appId, deviceId, callbackEndpoint]
       properties:
         platform:
           type: string
@@ -549,6 +649,12 @@ components:
         callbackEndpoint:
           type: string
           format: uri
+        preferredTransports:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientTransport'
+        usbmuxdHint:
+          $ref: '#/components/schemas/USBMuxdHint'
         expiresAt:
           type: string
           format: date-time
@@ -580,6 +686,14 @@ components:
         callbackEndpoint:
           type: string
           format: uri
+        preferredTransports:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientTransport'
+        usbmuxdHint:
+          allOf:
+            - $ref: '#/components/schemas/USBMuxdHint'
+          nullable: true
         lastSeenAt:
           type: string
           format: date-time
@@ -591,6 +705,19 @@ components:
           minimum: 0
         selected:
           type: boolean
+    ClientTransport:
+      type: string
+      enum: [httpCallback, webSocket, usbmuxdHTTP]
+    USBMuxdHint:
+      type: object
+      required: [deviceID]
+      properties:
+        deviceID:
+          type: integer
+          minimum: 1
+        socketPath:
+          type: string
+          nullable: true
     ClientRegisterResponse:
       type: object
       required: [client]
@@ -630,201 +757,6 @@ components:
         updatedAt:
           type: string
           format: date-time
-    WsClientContext:
-      type: object
-      description: Shared client identity used by WS messages.
-      properties:
-        clientId:
-          type: string
-        role:
-          type: string
-          enum: [sdk, inspector, unknown]
-        platform:
-          type: string
-          enum: [ios, android, harmony, web]
-          nullable: true
-        appId:
-          type: string
-          nullable: true
-        sessionId:
-          type: string
-          nullable: true
-        deviceId:
-          type: string
-          nullable: true
-    WsTarget:
-      type: object
-      description: Optional fan-out target used by command dispatch messages.
-      properties:
-        platforms:
-          type: array
-          items:
-            type: string
-            enum: [ios, android, harmony, web]
-        appIds:
-          type: array
-          items:
-            type: string
-        sessionIds:
-          type: array
-          items:
-            type: string
-        deviceIds:
-          type: array
-          items:
-            type: string
-    WsHelloMessage:
-      type: object
-      required: [type]
-      properties:
-        type:
-          const: hello
-        requestId:
-          type: string
-        role:
-          type: string
-          enum: [sdk, inspector, unknown]
-        platform:
-          type: string
-          enum: [ios, android, harmony, web]
-        appId:
-          type: string
-        sessionId:
-          type: string
-        deviceId:
-          type: string
-    WsHeartbeatMessage:
-      type: object
-      required: [type]
-      properties:
-        type:
-          const: heartbeat
-        requestId:
-          type: string
-        clientTime:
-          type: string
-          format: date-time
-    WsCommandSendMessage:
-      type: object
-      required: [type, command]
-      properties:
-        type:
-          const: command.send
-        requestId:
-          type: string
-        commandId:
-          type: string
-        command:
-          type: string
-        payload:
-          type: object
-          additionalProperties: true
-        target:
-          $ref: '#/components/schemas/WsTarget'
-    WsAckMessage:
-      type: object
-      required: [type, commandId, accepted, delivered]
-      properties:
-        type:
-          const: ack
-        requestId:
-          type: string
-        commandId:
-          type: string
-        accepted:
-          type: boolean
-        delivered:
-          type: integer
-          minimum: 0
-    WsEventLogRecordMessage:
-      type: object
-      required: [type, topic, topicId, record]
-      properties:
-        type:
-          const: event.log_record
-        topic:
-          const: log_record
-        topicId:
-          type: integer
-          const: 101
-        record:
-          $ref: '#/components/schemas/LogRecord'
-    WsEventCommandAckMessage:
-      type: object
-      required: [type, commandId, command, status, timestamp]
-      properties:
-        type:
-          const: event.command_ack
-        requestId:
-          type: string
-        commandId:
-          type: string
-        command:
-          type: string
-        status:
-          type: string
-          enum: [ok, error]
-        message:
-          type: string
-          nullable: true
-        timestamp:
-          type: string
-          format: date-time
-        client:
-          $ref: '#/components/schemas/WsClientContext'
-    WsEventCommandSummaryMessage:
-      type: object
-      required: [type, commandId, command, delivered, acked, timeout]
-      properties:
-        type:
-          const: event.command_summary
-        requestId:
-          type: string
-        commandId:
-          type: string
-        command:
-          type: string
-        delivered:
-          type: integer
-          minimum: 0
-        acked:
-          type: integer
-          minimum: 0
-        timeout:
-          type: integer
-          minimum: 0
-    WsErrorMessage:
-      type: object
-      required: [type, message]
-      properties:
-        type:
-          const: error
-        requestId:
-          type: string
-        code:
-          type: string
-          enum: [invalid_payload, invalid_target, unsupported_command, forbidden_role]
-        message:
-          type: string
-        detail:
-          type: string
-          nullable: true
-    WsInboundMessage:
-      oneOf:
-        - $ref: '#/components/schemas/WsHelloMessage'
-        - $ref: '#/components/schemas/WsHeartbeatMessage'
-        - $ref: '#/components/schemas/WsCommandSendMessage'
-      discriminator:
-        propertyName: type
-    WsOutboundMessage:
-      oneOf:
-        - $ref: '#/components/schemas/WsAckMessage'
-        - $ref: '#/components/schemas/WsEventLogRecordMessage'
-        - $ref: '#/components/schemas/WsEventCommandAckMessage'
-        - $ref: '#/components/schemas/WsEventCommandSummaryMessage'
-        - $ref: '#/components/schemas/WsErrorMessage'
-      discriminator:
-        propertyName: type
     ErrorResponse:
       type: object
       required: [error]

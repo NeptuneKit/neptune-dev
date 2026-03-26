@@ -35,6 +35,6 @@
 ## 发现与展示主链路（冻结）
 1. `CLI` 作为网关启动，并提供 `mDNS`（可选）与 `GET /v2/gateway/discovery`（必须）。
 2. `App SDK` 执行网关发现：`mDNS 优先 + 手动 DSN 回退`。
-3. `App SDK` 将日志上报到 `CLI`：`POST /v2/logs:ingest`，并通过 `POST /v2/clients:register` 维护在线回调地址。
-4. `CLI` 聚合写入并更新来源快照：`/v2/logs`、`/v2/sources`、`/v2/metrics`、`/v2/clients`。
+3. 日志主存储在客户端；`App SDK` 通过 `POST /v2/clients:register` 维护在线回调地址。
+4. `CLI` 不再本地落盘日志：`GET /v2/logs` 对在线客户端 fan-out 查询并聚合返回；`/v2/ws` 中继实时日志事件。
 5. `H5 Inspector` 仅连接 `CLI` 展示，不直接连接端侧 App；勾选通过 `PUT /v2/clients:selected` 全量覆盖提交。
